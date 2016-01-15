@@ -1,16 +1,19 @@
 #---------------------------------------------------------------------
 # Rename type factories
 #
+# Features:
 # * Adds labels to the type factory vtable locations.
-# * Adds labels to vtables when using inline constructors
-# * Doesn't work with constructors that the code calls or jumps to
+# * Adds labels to constructors
+# * Adds labels to vtables
+# * Doesn't work with __stdcall constructors yet
+# * Looks messy
 #---------------------------------------------------------------------
 from idautils import *
 
 def handleInlineConstructor(ea,name):
-	#print "%X" % R4
+	#print "%X" % ea
 	E = list(FuncItems(ea))
-	hit = -1
+	hit = idaapi.BADADDR
 	reg = ["eax"]
 	opnd = ["dword ptr [eax]"]
 	movRegCount = 0
@@ -18,12 +21,12 @@ def handleInlineConstructor(ea,name):
 	callCount = 0
 	for e in E:	
 		# start logging after the 2nd call.
-		if callCount < 2:
+		if callCount  < 2:
 			if GetMnem(e) == "call":
 				callCount += 1
 			continue		
 					
-		if GetMnem(e) == "mov" and GetOpType(e,0) == 3 and GetOpType(e,1) == 5 and GetOpnd(e,0) in opnd:
+		if GetMnem(e) == "mov" and GetOpType(e,0) in [3, 4] and GetOpType(e,1) == 5 and GetOpnd(e,0) in opnd:
 			hit = e
 			movCount += 1
 			#print "%X : %s %s %s %s %s %s" % (e,GetOpType(e,0),GetOpType(e,1),GetOpnd(e,0),GetOpnd(e,1),GetOperandValue(e,0), GetOperandValue(e,1))
@@ -32,16 +35,92 @@ def handleInlineConstructor(ea,name):
 			#print "%s -> %s" % (reg, newReg)		
 			reg.append(newReg)
 			opnd.append("dword ptr [%s]" % newReg)
+			opnd.append("dword ptr [%s+0]" % newReg)
 			movRegCount += 1
 			#print "%X : %s %s %s %s %s %s" % (e,GetOpType(e,0),GetOpType(e,1),GetOpnd(e,0),GetOpnd(e,1),GetOperandValue(e,0), GetOperandValue(e,1))
 			
-	if hit == -1:
+	if hit == idaapi.BADADDR:
 		print "%X miss %i %i %s" % (ea, movCount, movRegCount, opnd)			
 	else:
 		hitVtable = GetOperandValue(hit, 1)
 		idc.MakeName(hitVtable, "%s_vtable_0" % name)		
 		print "%X hit %i %X %s %X" % (ea, movCount, hit, GetDisasm(hit), hitVtable)
+	return hit
 
+def findConstructor(ea):
+	E = list(FuncItems(ea))
+	hit = idaapi.BADADDR
+	reg = ["eax"]
+	opnd = ["dword ptr [eax]"]
+	movRegCount = 0
+	branched = False
+	for e in E:
+		if not branched:
+			if GetMnem(e) == "jz":
+				branched = True
+				#print "    branched %s" % GetDisasm(e)
+			continue
+		
+		if GetMnem(e) in ["call", "jmp"]:
+			hit = e	
+			#print "    %X : %s %s %s" % (e,GetOpType(e,0),GetOpnd(e,0),GetOperandValue(e,0))
+			break
+		elif GetMnem(e) == "mov" and GetOpType(e,0) == 1 and GetOpType(e,1) == 1 and GetOpnd(e,1) in reg:
+			newReg = GetOpnd(e,0)
+			#print "%s -> %s" % (reg, newReg)		
+			reg.append(newReg)
+			opnd.append("dword ptr [%s]" % newReg)
+			opnd.append("dword ptr [%s+0]" % newReg)
+			movRegCount += 1
+			#print "    %X : %s %s %s %s %s %s" % (e,GetOpType(e,0),GetOpType(e,1),GetOpnd(e,0),GetOpnd(e,1),GetOperandValue(e,0), GetOperandValue(e,1))
+	
+	if hit == idaapi.BADADDR:
+		constructorFunc = idaapi.BADADDR
+		print "%X miss %i %s" % (ea, movRegCount, opnd)	
+	else:
+		constructorFunc = GetOperandValue(e, 0)
+		print "%X hit %i %X %s" % (ea, movRegCount, hit, constructorFunc)
+	
+	return (constructorFunc, reg[-1])
+	
+def handleConstructor(ea,name):
+	#print ""
+	#print "%X" % ea
+	constructorFunc, A1 = findConstructor(ea)
+	if constructorFunc == idaapi.BADADDR:
+		return constructorFunc
+		
+	idc.MakeName(constructorFunc, "%s::%s" % (name,name))		
+	print "handle %s %s" % (constructorFunc, A1)
+	
+	reg = [A1]
+	opnd = ["dword ptr [%s]" % A1]
+	movRegCount = 0
+	movCount = 0	
+	E = list(FuncItems(constructorFunc))
+	hit = idaapi.BADADDR
+	for e in E:
+		if GetMnem(e) == "mov" and GetOpType(e,0) in [3,4] and GetOpType(e,1) == 5 and GetOpnd(e,0) in opnd:
+			hit = e
+			movCount += 1
+			#print "%X : %s %s %s %s %s %s" % (e,GetOpType(e,0),GetOpType(e,1),GetOpnd(e,0),GetOpnd(e,1),GetOperandValue(e,0), GetOperandValue(e,1))
+		elif GetMnem(e) == "mov" and GetOpType(e,0) == 1 and GetOpType(e,1) == 1 and GetOpnd(e,1) in reg:		
+			newReg = GetOpnd(e,0)
+			#print "%s -> %s" % (reg, newReg)		
+			reg.append(newReg)
+			opnd.append("dword ptr [%s]" % newReg)
+			opnd.append("dword ptr [%s+0]" % newReg)
+			movRegCount += 1
+			#print "%X : %s %s %s %s %s %s" % (e,GetOpType(e,0),GetOpType(e,1),GetOpnd(e,0),GetOpnd(e,1),GetOperandValue(e,0), GetOperandValue(e,1))
+			
+	if hit == idaapi.BADADDR:
+		hitVtable = idaapi.BADADDR
+		print "%X miss %i %i %s" % (ea, movCount, movRegCount, opnd)			
+	else:
+		hitVtable = GetOperandValue(hit, 1)
+		idc.MakeName(hitVtable, "%s_vtable_0" % name)		
+		print "%X hit %i %X %s %X" % (ea, movCount, hit, GetDisasm(hit), hitVtable)
+	return hit
 def main():
 	tracedfunc = idc.FindBinary(0, 1, "8B 44 24 04 56 8B F1 8B 56 18 8B 4C 24 10 81 E1 ?? ?? ?? ?? 81 E2 ?? ?? ?? ??")
 
@@ -78,7 +157,7 @@ def main():
 			elif GetMnem(e) == "mov" and count == 10:
 				R2 = GetOperandValue(e, 1)
 		
-		print "%s\t%s\t\"%s\"\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (hex(ref), hex(A1), A2, hex(A3), A4, A5, A7, A7, hex(R1), hex(R2))
+		#print "%s\t%s\t\"%s\"\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (hex(ref), hex(A1), A2, hex(A3), A4, A5, A7, A7, hex(R1), hex(R2))
 		
 		# A1 = p_factory
 		# A2 = Name
@@ -101,6 +180,13 @@ def main():
 			#print "error: not a function %X" % R4
 			continue		
 		idc.MakeName(R4, "create_%s" % name)		
-		handleInlineConstructor(R4,name)	
+			
+		if not handleInlineConstructor(R4,name) == idaapi.BADADDR:
+			continue
+			
+		if not handleConstructor(R4,name) == idaapi.BADADDR:
+			continue
+			
+		print "error: could not process the constructor of type %s" % name
 if __name__ == "__main__":
   main()
