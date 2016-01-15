@@ -27,7 +27,6 @@ def handleInlineConstructor(ea,name):
 			hit = e
 			movCount += 1
 			#print "%X : %s %s %s %s %s %s" % (e,GetOpType(e,0),GetOpType(e,1),GetOpnd(e,0),GetOpnd(e,1),GetOperandValue(e,0), GetOperandValue(e,1))
-			break
 		elif GetMnem(e) == "mov" and GetOpType(e,0) == 1 and GetOpType(e,1) == 1 and GetOpnd(e,1) in reg:
 			newReg = GetOpnd(e,0)
 			#print "%s -> %s" % (reg, newReg)		
@@ -41,7 +40,7 @@ def handleInlineConstructor(ea,name):
 	else:
 		hitVtable = GetOperandValue(hit, 1)
 		idc.MakeName(hitVtable, "%s_vtable_0" % name)		
-		print "%X hit %X %s %X" % (ea, hit, GetDisasm(hit), hitVtable)
+		print "%X hit %i %X %s %X" % (ea, movCount, hit, GetDisasm(hit), hitVtable)
 
 def main():
 	tracedfunc = idc.FindBinary(0, 1, "8B 44 24 04 56 8B F1 8B 56 18 8B 4C 24 10 81 E1 ?? ?? ?? ?? 81 E2 ?? ?? ?? ??")
