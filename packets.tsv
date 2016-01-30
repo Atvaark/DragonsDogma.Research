@@ -1,0 +1,34 @@
+﻿Name 	Name (translated)	Name (key)	Id1	Id2	Id3	Handle function
+ラインチェック要求	Line check request	 line_check_request 	10h	 1h	 1h	 line_check_request__handle
+ラインチェック応答	Line check response	 line_check_response	10h	 1h	 2h	 0
+切断要求	Disconnection request	 disconnection_request	10h	 10h	 1h	 0
+切断応答	Disconnection response	 disconnection_response	10h	 10h	 2h	 disconnection_response__handle
+切断通知	Disconnection notification	 disconnection_notification	10h	 10h	 10h	 disconnection_notification__handle
+再接続要求	Reconnection request	 reconnection_request	10h	 11h	 10h	 reconnection_request__handle
+ファーストデータ要求	Fast data request	 fast_data_request	10h	 20h	 1h	 fast_data_request__handle
+ファーストデータ応答	Fast data response	 fast_data_response	10h	 20h	 2h	 0
+接続概要通知	Connection summary notification	 connection_summary_notification	10h	 21h	 10h	 connection_summary_notification__handle
+認証情報要求(ヘッダ)	Authentication information request (header)	 authentication_information_request_header	11h	 1h	 1h	 0
+認証情報応答(ヘッダ)	Authentication information response (header)	 authentication_information_response_header	11h	 1h	 2h	 authentication_information_response_header__handle
+認証情報要求(データ)	Authentication information request (data)	 authentication_information_request_data	11h	 2h	 1h	 0
+認証情報応答(データ)	Authentication information response (data)	 authentication_information_response_data	11h	 2h	 2h	 authentication_information_response_data__handle
+認証情報要求(フッタ)	Authentication information request (footer)	 authentication_information_request_footer	11h	 3h	 1h	 0
+認証情報応答(フッタ)	Authentication information response (footer)	 authentication_information_response_footer	11h	 3h	 2h	 authentication_information_response_footer__handle
+TUS共通領域取得要求	TUS common area acquisition request	 tus_common_area_acquisition_request	12h	 1h	 1h	 0
+TUS共通領域取得応答	TUS common area acquisition response	 tus_common_area_acquisition_response	12h	 1h	 2h	 tus_common_area_acquisition_response__handle
+TUS共通領域設定要求	TUS common area setting request	 tus_common_area_settings_request	12h	 2h	 1h	 0
+TUS共通領域設定応答	TUS common area setting response	 tus_common_area_settings_response	12h	 2h	 2h	 tus_common_area_settings_response__handle
+TUS共通領域加算要求	TUS common area addition request	 tus_common_area_add_request	12h	 3h	 1h	 0
+TUS共通領域加算応答	TUS common area addition response	 tus_common_area_add_response	12h	 3h	 2h	 tus_common_area_add_response__handle
+TUSユーザー領域書き込み要求(ヘッダ) 	TUS user area write request (header)	 tus_user_area_write_request_header	12h	 4h	 1h	 0
+TUSユーザー領域書き込み応答(ヘッダ) 	TUS user area write response (header)	 tus_user_area_write_response_header	12h	 4h	 2h	 tus_user_area_write_response_header__handle
+TUSユーザー領域書き込み要求(データ) 	TUS user area write request (data)	 tus_user_area_write_request_data	12h	 5h	 1h	 0
+TUSユーザー領域書き込み応答(データ) 	TUS user area write response (data)	 tus_user_area_write_response_data	12h	 5h	 2h	 tus_user_area_write_response_data__handle
+TUSユーザー領域書き込み要求(フッタ) 	TUS user area write request (footer)	 tus_user_area_write_request_footer	12h	 6h	 1h	 0
+TUSユーザー領域書き込み応答(フッタ) 	TUS user area write response (footer)	 tus_user_area_write_response_footer	12h	 6h	 2h	 tus_user_area_write_response_footer__handle
+TUSユーザー領域読み出し要求(ヘッダ) 	TUS user area read request (header)	 tus_user_area_read_request_header	12h	 7h	 1h	 0
+TUSユーザー領域読み出し応答(ヘッダ) 	TUS user area read response (header)	 tus_user_area_read_response_header	12h	 7h	 2h	 tus_user_area_read_response_header__handle
+TUSユーザー領域読み出し要求(データ) 	TUS user area read request (data)	 tus_user_area_read_request_data	12h	 8h	 1h	 0
+TUSユーザー領域読み出し応答(データ) 	TUS user area read response (data)	 tus_user_area_read_response_data	12h	 8h	 2h	 tus_user_area_read_response_data__handle
+TUSユーザー領域読み出し要求(フッタ) 	TUS user area read request (footer)	 tus_user_area_read_request_footer	12h	 9h	 1h	 0
+TUSユーザー領域読み出し応答(フッタ) 	TUS user area read response (footer) 	 tus_user_area_read_response_footer	12h	 9h	 2h	 tus_user_area_read_response_footer__handle
